@@ -1,14 +1,14 @@
 package com.example.chatty_2;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatty_2.Models.Users;
 import com.example.chatty_2.databinding.ActivitySettingsBinding;
@@ -25,7 +25,6 @@ import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
-import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -111,15 +110,21 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) { // storing the pics in firebase storage and realtime database
         super.onActivityResult(requestCode, resultCode, data);
         if (data.getData() != null) { // if the data received is not null
-            Uri uri = data.getData(); // getting that data to a uri
-            binding.imageProfile.setImageURI(uri); // setting the pic in the view
+            Uri uri1 = data.getData(); // getting that data to a uri
+            binding.imageProfile.setImageURI(uri1); // setting the pic in the view
 
             final StorageReference storageReference = storage.getReference().child("ProfilePics").child(firebaseAuth.getUid()); // making a instance of the firebase storage and storing pic uri in that
-            storageReference.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            storageReference.putFile(uri1).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) { // on success of uploading uri of pic into firebase storage , store uri string in firebase realtime database
-                    reference.child("Users").child(firebaseAuth.getUid())
-                            .child("profilePic").setValue(uri.toString());
+                    storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() { // Get uri from uploading picture on firebase storage
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            reference.child("Users").child(firebaseAuth.getUid()) // and put it in the realtime database so the recycler view can use it in the main activity
+                                    .child("profilePic").setValue(uri.toString());
+                        }
+                    });
+
                     Toast.makeText(SettingsActivity.this, "Profile Pic Updated", Toast.LENGTH_SHORT).show();
                 }
             });
